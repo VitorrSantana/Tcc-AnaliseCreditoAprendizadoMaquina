@@ -1,0 +1,15 @@
+# Análise de Crédito utilizando Aprendizado de Máquina
+
+
+Trabalho de Conclusão de Curso de Engenharia de Computação
+
+Aluno: Vitor Nelis Santana de Medeiros
+
+Orientadores: Rogerio Martins e Rodrigo Barbosa
+### Tarefas a serem desempenhadas ao longo do Trabalho
+
+* Análise da qualidade dos Dados
+* Pré-Processamento dos Dados 
+* Análise de Melhores Features dos Modelos
+* Treinamento dos Modelos 
+* Análise de Métricas como curva AUC-ROC
