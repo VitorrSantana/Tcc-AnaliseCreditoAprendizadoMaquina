@@ -8,9 +8,9 @@ from sklearn.tree            import DecisionTreeClassifier
 from sklearn.cluster         import KMeans
 from sklearn.metrics         import RocCurveDisplay, accuracy_score, classification_report
 
-import lightgbm as lgb
-import xgboost as xgb
-
+import matplotlib.pyplot as plt
+import lightgbm          as lgb
+import xgboost           as xgb
 
 class Modelagem:
     
@@ -27,7 +27,7 @@ class Modelagem:
             case 'xgboost'      : self.model = xgb.XGBClassifier(**params)
             case 'reg_log'      : self.model = LogisticRegression(**params)
             case 'decis_tree'   : self.model = DecisionTreeClassifier(**params)
-            case 'knn'          : self.model = KMeans(**params)
+            case 'kmeans'       : self.model = KMeans(**params)
             case 'lgb'          : self.model = lgb.LGBMClassifier(**params)
             case _              : print('Não foi encontrado Modelo')
 
@@ -37,6 +37,7 @@ class Modelagem:
                 self.model.fit(self.X_train,self.y_train)
                 self.evaluate_model(type_model)
             case 'nao_supervisionado':
+                # self.evaluate_values_of_k()
                 self.model.fit(self.X)
             case _              : print('Não foi encontrado tipo de modelo')
 
@@ -62,3 +63,17 @@ class Modelagem:
         cv_scores = cross_val_score(self.model, self.X, self.y, cv=folds, scoring='accuracy')  # 5-fold cross-validation
         print(f'Cross-Validation Scores: {cv_scores}')
         print(f'Mean Accuracy: {cv_scores.mean()}')
+
+    def evaluate_values_of_k(self,last_value):
+        inertia_values = []
+        for k in range(1,last_value):
+            self.set_model('kmeans',{'n_clusters':k})
+            self.model.fit(self.X)
+            inertia_values.append(self.model.inertia_)
+        
+        # Plotar o gráfico do método do cotovelo
+        plt.plot(range(1, last_value), inertia_values, marker='o')
+        plt.xlabel('Número de Clusters (K)')
+        plt.ylabel('Inércia')
+        plt.title('Método do Cotovelo para Escolha do Número de Clusters')
+        plt.show()
