@@ -3,3 +3,5 @@ home-credit-default-risk
 data
 venv
 __pycache__
+*.csv
+*.pickle

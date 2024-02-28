@@ -1,16 +1,20 @@
 # Importar bibliotecas necessárias
-from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.model_selection import cross_val_score, train_test_split,GridSearchCV
 from sklearn.preprocessing   import StandardScaler
 from sklearn.pipeline        import Pipeline
 from sklearn.linear_model    import LogisticRegression
 from sklearn.ensemble        import RandomForestClassifier
 from sklearn.tree            import DecisionTreeClassifier
 from sklearn.cluster         import KMeans
-from sklearn.metrics         import RocCurveDisplay, accuracy_score, classification_report
+from sklearn.metrics         import RocCurveDisplay, accuracy_score, classification_report,roc_auc_score
 
 import matplotlib.pyplot as plt
 import lightgbm          as lgb
 import xgboost           as xgb
+import optuna
+import pickle 
+import warnings
+warnings.filterwarnings("ignore")
 
 class Modelagem:
     
@@ -22,6 +26,7 @@ class Modelagem:
 
 
     def set_model(self,name_model='random_forest',params=None):
+        self.name_model_set = name_model
         match name_model:
             case 'random_forest': self.model = RandomForestClassifier(**params)
             case 'xgboost'      : self.model = xgb.XGBClassifier(**params)
@@ -45,22 +50,26 @@ class Modelagem:
         match type_model:
             case 'supervisionado': 
                 # Calculando para o treino
-                self.y_train_pred = self.model.predict(self.X_train)
+                self.y_train_pred = self.model.predict_proba(self.X_train)[:, 1]
+                auc_roc_train = roc_auc_score(self.y_train, self.y_train_pred)
                 print('Reporte de Classificação para o Treino:')
-                print(classification_report(self.y_train, self.y_train_pred))
+                print(f'A AUC ROC DO TREINO FOI >>> {auc_roc_train}')
+                #print(classification_report(self.y_train, self.y_train_pred))
                 RocCurveDisplay.from_predictions(self.y_train, self.y_train_pred)
                 print('----------------------------------------')
                 
-                self.y_test_pred = self.model.predict(self.X_test)
+                self.y_test_pred = self.model.predict_proba(self.X_test)[:, 1]
                 print('Reporte de Classificação para o Teste:')
-                print(classification_report(self.y_test, self.y_test_pred))
+                auc_roc = roc_auc_score(self.y_test, self.y_test_pred)
+                print(f'A AUC ROC DO TESTE FOI >>> {auc_roc}')
+                #print(classification_report(self.y_test, self.y_test_pred))
                 RocCurveDisplay.from_predictions(self.y_test, self.y_test_pred)
                 print('----------------------------------------')
             case 'nao_supervisionado':
                 print('constuir ainda')
 
     def apply_cross_validation(self,folds=5):
-        cv_scores = cross_val_score(self.model, self.X, self.y, cv=folds, scoring='accuracy')  # 5-fold cross-validation
+        cv_scores = cross_val_score(self.model, self.X, self.y, cv=folds, scoring='roc_auc')  # 5-fold cross-validation
         print(f'Cross-Validation Scores: {cv_scores}')
         print(f'Mean Accuracy: {cv_scores.mean()}')
 
@@ -77,3 +86,54 @@ class Modelagem:
         plt.ylabel('Inércia')
         plt.title('Método do Cotovelo para Escolha do Número de Clusters')
         plt.show()
+
+    def otimizacao_parametros_optuna(self,parametos_otimizar,num_iteracoes=100):
+        def objective(trial, parametos_otimizar):
+            # Define os hiperparâmetros a serem otimizados
+            parametros = {}
+            for param,tipo,valor_inicial,valor_final in parametos_otimizar:
+                match tipo:
+                    case 'float': parametros[param] = trial.suggest_float(param, valor_inicial,valor_final)
+                    case 'int'  : parametros[param] = trial.suggest_int(param,valor_inicial,valor_final)
+                    case 'str'  : parametros[param] = trial.suggest_categorical(param, [valor_inicial, valor_final])
+                    case 'fixo' : parametros[param] = valor_inicial
+                    case _      : print('Não foi encontrado coorespondencia') 
+                
+            parametros['random_state'] = 42
+            print(parametros)
+
+            # Usa o classificador definido da classe com os hiperparâmetros definidos para Otimizar
+            self.model.set_params(**parametros)
+            model = self.model
+
+            # Treina o modelo
+            if self.name_model_set == 'xgboost':
+                model.fit(self.X_train, self.y_train,early_stopping_rounds=30,eval_set=[(self.X_test, self.y_test)], verbose=True)
+            else:
+                model.fit(self.X_train, self.y_train)
+
+            # Faz previsões no conjunto de validação
+            y_pred = model.predict_proba(self.X_test)[:, 1]
+
+            # Calcula a métrica AUC-ROC
+            auc_roc = roc_auc_score(self.y_test, y_pred)
+            print(f'A AUC ROC DO TESTE FOI >>> {auc_roc}')
+            # O objetivo é maximizar a métrica AUC-ROC
+            return auc_roc
+
+        # Cria o estudo Optuna
+        study = optuna.create_study(direction='maximize')
+
+        # Parâmetros adicionais para a função objetivo
+        # Use a função partial para passar os parâmetros adicionais para a função objetivo
+        objective_with_params = lambda trial: objective(trial, parametos_otimizar)
+
+        # Inicia a otimização
+        study.optimize(objective_with_params, n_trials=num_iteracoes)
+    
+        # Imprime os resultados
+        print('Melhor valor AUC-ROC:', study.best_value)
+        print('Melhores hiperparâmetros:', study.best_params)
+        return study,study.best_params,study.best_value
+
+
