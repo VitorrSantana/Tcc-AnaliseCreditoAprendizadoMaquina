@@ -50,7 +50,7 @@ class PreProcessamento:
         X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=0.3, random_state=42)
         mutual_info_scores = mutual_info_classif(X_train, y_train)
         features_names = list(X_train.columns)
-        features_selecionadas = sorted(zip(mutual_info_scores, features_names), key=lambda x: x[1], reverse=True)
+        features_selecionadas = sorted(zip(mutual_info_scores, features_names), key=lambda x: x[0], reverse=True)
         features_selecionadas = [feature[1] for feature in  features_selecionadas]
      
         return features_selecionadas
@@ -58,7 +58,7 @@ class PreProcessamento:
     def teste_f_classif(self,X,y,qtd_features_selecionadas=10):
         X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=0.3, random_state=42)
 
-        features_names = list(X.columns)
+        # features_names = list(X.columns)
         # Usando o SelectKBest com o teste de Anova para selecionar as duas melhores características
         anova_score, _ = f_classif(X_train, y_train)
         features_names = list(X_train.columns)
