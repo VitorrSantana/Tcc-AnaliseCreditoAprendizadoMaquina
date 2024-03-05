@@ -15,10 +15,10 @@ class Testes:
         self.colunas        = colunas
 
     def executa_simulações(self,qtd_it_features=5,qtd_iteracoes=50,seletor_features=['person','mutal_info','anova']):
-        resultado  = pd.DataFrame({'auc-roc':[],'params':[],'modelo':[],'feature_selector':[],'qtd_features':[]})
-        idx_resultado = 0
 
         for seletor_feature in seletor_features:
+            resultado  = pd.DataFrame({'auc-roc':[],'params':[],'modelo':[],'feature_selector':[],'qtd_features':[]})
+            idx_resultado = 0
             print(f'-------- Seletor Feature {seletor_feature} iniciando execução --------')
             pre_proce = PreProcessamento(self.data_final[self.colunas])
             match seletor_feature:
@@ -43,8 +43,8 @@ class Testes:
                     gc.collect()
                     
                     idx_resultado +=1
-        resultado.to_csv(f'resultados_teste_nome_modelo{nome_modelo}_{seletor_feature}.csv',index=False)
-        print(resultado)
+            resultado.to_csv(f'resultados_teste_{nome_modelo}_{seletor_feature}.csv',index=False)
+            del resultado 
 
 
 

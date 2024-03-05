@@ -108,7 +108,7 @@ class Modelagem:
 
             # Treina o modelo
             if self.name_model_set == 'xgboost':
-                model.fit(self.X_train, self.y_train,early_stopping_rounds=30,eval_set=[(self.X_test, self.y_test)], verbose=True)
+                model.fit(self.X_train, self.y_train, verbose=True)
             else:
                 model.fit(self.X_train, self.y_train)
 
