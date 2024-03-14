@@ -24,7 +24,6 @@ class Modelagem:
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=perct_test_size, random_state=1)
         self.model = model
 
-
     def set_model(self,name_model='random_forest',params=None):
         self.name_model_set = name_model
         match name_model:
