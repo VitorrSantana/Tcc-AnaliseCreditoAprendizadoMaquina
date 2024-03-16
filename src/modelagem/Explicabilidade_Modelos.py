@@ -24,7 +24,7 @@ class Explicabilidade_Modelos:
                 _, self.X_Test, _, _   = train_test_split(X,y, test_size=porc_avaliada, random_state=1)
                 self.shap_values_test  = self.explainer.shap_values(self.X_Test) 
             case _       : 
-                self.X                = self.X
+                self.X                = X
                 self.shap_values      = self.explainer.shap_values(self.X) 
         
     def grafico_force_plot_instace_unique(self,tipo_dado='Treino',col_identificacao = 'SK_ID_CURR',id_cliente=None):
@@ -37,7 +37,7 @@ class Explicabilidade_Modelos:
         shap.force_plot(self.explainer.expected_value[1],self.shap_values[1][idx_cliente,:],self.X.iloc[idx_cliente,:])
 
 
-    def graficos_force_plot_instabces(self):
+    def grafico_force_plot_instances(self):
         pass     
 
     def grafico_summary_plot(self,tipo_dado='Treino'):
@@ -50,7 +50,7 @@ class Explicabilidade_Modelos:
                  shap.summary_plot(self.shap_values[1],self.X)
 
 
-    def dependence_plot(self,feature_dependence,tipo_dado='Treino',interaction_index = None):
+    def grafico_dependence_plot(self,feature_dependence,tipo_dado='Treino',interaction_index = None):
 
          match tipo_dado:
             case 'Treino':
@@ -58,6 +58,6 @@ class Explicabilidade_Modelos:
             case 'Teste':
                 shap.dependence_plot(self.shap_values_test[1],self.X_Test,interaction_index=interaction_index)
             case _:
-                 shap.dependence_plot(self.shap_values[1],self.X,interaction_index=interaction_index)
+                shap.dependence_plot(self.shap_values[1],self.X,interaction_index=interaction_index)
 
         

@@ -53,7 +53,7 @@ class Modelagem:
                 auc_roc_train = roc_auc_score(self.y_train, self.y_train_pred)
                 print('Reporte de Classificação para o Treino:')
                 print(f'A AUC ROC DO TREINO FOI >>> {auc_roc_train}')
-                #print(classification_report(self.y_train, self.y_train_pred))
+                print(classification_report(self.y_train, self.model.predict(self.X_train)))
                 RocCurveDisplay.from_predictions(self.y_train, self.y_train_pred)
                 print('----------------------------------------')
                 
@@ -61,7 +61,7 @@ class Modelagem:
                 print('Reporte de Classificação para o Teste:')
                 auc_roc = roc_auc_score(self.y_test, self.y_test_pred)
                 print(f'A AUC ROC DO TESTE FOI >>> {auc_roc}')
-                #print(classification_report(self.y_test, self.y_test_pred))
+                print(classification_report(self.y_test, self.model.predict(self.X_test)))
                 RocCurveDisplay.from_predictions(self.y_test, self.y_test_pred)
                 print('----------------------------------------')
             case 'nao_supervisionado':
