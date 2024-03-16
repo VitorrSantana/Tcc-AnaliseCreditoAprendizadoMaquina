@@ -38,7 +38,8 @@ class Explicabilidade_Modelos:
 
 
     def grafico_force_plot_instances(self):
-        pass     
+        # Adicionar Regra para diferentes bases
+        shap.force_plot(self.explainer.expected_value[1],self.shap_values[1],self.X)
 
     def grafico_summary_plot(self,tipo_dado='Treino'):
          match tipo_dado:
@@ -50,7 +51,7 @@ class Explicabilidade_Modelos:
                  shap.summary_plot(self.shap_values[1],self.X)
 
 
-    def grafico_dependence_plot(self,feature_dependence,tipo_dado='Treino',interaction_index = None):
+    def grafico_dependence_plot(self,feature_dependence,tipo_dado='Treino',intr_index = None):
 
          match tipo_dado:
             case 'Treino':
@@ -58,6 +59,6 @@ class Explicabilidade_Modelos:
             case 'Teste':
                 shap.dependence_plot(self.shap_values_test[1],self.X_Test,interaction_index=interaction_index)
             case _:
-                shap.dependence_plot(self.shap_values[1],self.X,interaction_index=interaction_index)
+                shap.dependence_plot(self.shap_values[1],self.X,interaction_index=intr_index)
 
         
