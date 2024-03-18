@@ -55,9 +55,9 @@ class Explicabilidade_Modelos:
 
          match tipo_dado:
             case 'Treino':
-                shap.dependence_plot(feature_dependence,self.shap_values_train[1],self.X_Train,interaction_index=interaction_index)
+                shap.dependence_plot(feature_dependence,self.shap_values_train[1],self.X_Train,interaction_index=intr_index)
             case 'Teste':
-                shap.dependence_plot(self.shap_values_test[1],self.X_Test,interaction_index=interaction_index)
+                shap.dependence_plot(self.shap_values_test[1],self.X_Test,interaction_index=intr_index)
             case _:
                 shap.dependence_plot(self.shap_values[1],self.X,interaction_index=intr_index)
 

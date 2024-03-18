@@ -17,7 +17,7 @@ class Testes:
     def executa_simulações(self,qtd_it_features=5,qtd_iteracoes=50,seletor_features=['person','mutal_info','anova']):
 
         for seletor_feature in seletor_features:
-            resultado  = pd.DataFrame({'auc-roc':[],'params':[],'modelo':[],'feature_selector':[],'qtd_features':[]})
+            resultado  = pd.DataFrame({'score_composto':[],'auc_roc_train':[],'auc_roc_test':[],'accuracy_train':[],'accuracy_test':[],'params':[],'modelo':[],'feature_selector':[],'qtd_features':[]})
             idx_resultado = 0
             print(f'-------- Seletor Feature {seletor_feature} iniciando execução --------')
             pre_proce = PreProcessamento(self.data_final[self.colunas])
@@ -35,9 +35,9 @@ class Testes:
                     modelo  = Modelagem(self.data_final[features_selecionadas].drop('SK_ID_CURR',axis=1),'TARGET')
                     modelo.set_model(nome_modelo,{'random_state':42})
 
-                    study,melhores_param,auc_roc = modelo.otimizacao_parametros_optuna(parametros,num_iteracoes=qtd_iteracoes)
+                    study,melhores_param,score,auc_roc_train,accuracy_train,auc_roc_test,accuracy_test = modelo.otimizacao_parametros_optuna(parametros,num_iteracoes=qtd_iteracoes)
 
-                    resultado.loc[idx_resultado] = [auc_roc,melhores_param,nome_modelo,seletor_feature,qtd_it_features+idx_feature] 
+                    resultado.loc[idx_resultado] = [score,auc_roc_train,auc_roc_test,accuracy_train,accuracy_test,melhores_param,nome_modelo,seletor_feature,qtd_it_features+idx_feature] 
 
                     del  modelo
                     gc.collect()
