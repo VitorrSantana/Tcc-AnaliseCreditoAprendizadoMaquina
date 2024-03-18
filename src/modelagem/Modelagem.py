@@ -73,10 +73,10 @@ class Modelagem:
         self.auc_roc_train  = roc_auc_score(self.y_train, self.model.predict_proba(self.X_train)[:,1])
         self.accuracy_train = accuracy_score(self.y_train, self.model.predict(self.X_train))
         self.auc_roc_test   = roc_auc_score(self.y_test, self.model.predict_proba(self.X_test)[:,1])
-        self.accuracy_test  = accuracy_score(self.ytest, self.model.predict(self.X_test))
+        self.accuracy_test  = accuracy_score(self.y_test, self.model.predict(self.X_test))
         
         print(f'Treino-> AUC-ROC:{self.auc_roc_train} ---  ACCURACY {self.accuracy_train}')
-        print(f'Treino-> AUC-ROC:{self.auc_roc_test} ---  ACCURACY {self.accuracy_test}')
+        print(f'Test  -> AUC-ROC:{self.auc_roc_test} ---  ACCURACY {self.accuracy_test}')
 
 
     def apply_cross_validation(self,folds=5):
