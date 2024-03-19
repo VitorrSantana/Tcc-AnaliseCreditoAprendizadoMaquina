@@ -152,9 +152,9 @@ class Modelagem:
             
             # Calcular a pontuação composta como média ponderada das métricas
             #score_composto = (weight_auc_roc * self.auc_roc_test) + (weight_accuracy * self.accuracy_test)
-            score_composto  = self.auc_roc_test-abs(self.accuracy_train-self.auc_roc_test)
+            score_composto  = self.auc_roc_test-abs(self.auc_roc_train-self.auc_roc_test)
             # O objetivo é maximizar a métrica AUC-ROC com Accuracy
-            return score_composto
+            return score_compostos
 
         # Cria o estudo Optuna
         study = optuna.create_study(direction='maximize')
