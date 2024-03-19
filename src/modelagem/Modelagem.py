@@ -154,7 +154,7 @@ class Modelagem:
             #score_composto = (weight_auc_roc * self.auc_roc_test) + (weight_accuracy * self.accuracy_test)
             score_composto  = self.auc_roc_test-abs(self.auc_roc_train-self.auc_roc_test)
             # O objetivo é maximizar a métrica AUC-ROC com Accuracy
-            return score_compostos
+            return score_composto
 
         # Cria o estudo Optuna
         study = optuna.create_study(direction='maximize')
@@ -171,6 +171,7 @@ class Modelagem:
             match tipo:
                 case 'fixo':  melhores_param[param] = valor_inicial
         
+        melhores_param['random_state'] = 42
         self.model.set_params = melhores_param
         self.train_model()
 
