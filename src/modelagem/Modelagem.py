@@ -6,7 +6,7 @@ from sklearn.linear_model    import LogisticRegression
 from sklearn.ensemble        import RandomForestClassifier
 from sklearn.tree            import DecisionTreeClassifier
 from sklearn.cluster         import KMeans
-from sklearn.metrics         import RocCurveDisplay, accuracy_score, classification_report,roc_auc_score
+from sklearn.metrics         import RocCurveDisplay, accuracy_score, classification_report,roc_auc_score,roc_curve
 
 import matplotlib.pyplot as plt
 import lightgbm          as lgb
@@ -14,6 +14,7 @@ import xgboost           as xgb
 import optuna
 import pickle 
 import warnings
+import numpy as np
 warnings.filterwarnings("ignore")
 
 class Modelagem:
@@ -54,7 +55,7 @@ class Modelagem:
                 auc_roc_train = roc_auc_score(self.y_train, self.y_train_pred)
                 print('Reporte de Classificação para o Treino:')
                 print(f'A AUC ROC DO TREINO FOI >>> {auc_roc_train}')
-                print(classification_report(self.y_train, self.model.predict(self.X_train)))
+                print(classification_report(self.y_train, self.model.predict(self.X_train,threshold=self.best_threshold)))
                 RocCurveDisplay.from_predictions(self.y_train, self.y_train_pred)
                 print('----------------------------------------')
                 
@@ -62,7 +63,7 @@ class Modelagem:
                 print('Reporte de Classificação para o Teste:')
                 auc_roc = roc_auc_score(self.y_test, self.y_test_pred)
                 print(f'A AUC ROC DO TESTE FOI >>> {auc_roc}')
-                print(classification_report(self.y_test, self.model.predict(self.X_test)))
+                print(classification_report(self.y_test, self.model.predict(self.X_test,threshold=self.best_threshold)))
                 RocCurveDisplay.from_predictions(self.y_test, self.y_test_pred)
                 print('----------------------------------------')
             case 'nao_supervisionado':
@@ -70,10 +71,24 @@ class Modelagem:
 
     def metricas_modelo(self):
         
+
+        # Supondo que você já tenha os valores reais (y_true) e as probabilidades previstas (y_pred)
+        # y_true = [0, 1, 0, 1, ...]
+        # y_pred = [0.1, 0.8, 0.3, 0.6, ...]
+
+        fpr, tpr, thresholds = roc_curve(self.y_train, self.model.predict_proba(self.X_train)[:,1])
+        auc_score = roc_auc_score(self.y_train, self.model.predict_proba(self.X_train)[:,1])
+
+        # Calculando Youden's J para cada ponto de corte
+        youden_j = tpr - fpr
+        best_threshold_index = np.argmax(youden_j)
+        self.best_threshold = thresholds[best_threshold_index]
+        print(f'Melhor Threshold -> {self.best_threshold}')
+
         self.auc_roc_train  = roc_auc_score(self.y_train, self.model.predict_proba(self.X_train)[:,1])
-        self.accuracy_train = accuracy_score(self.y_train, self.model.predict(self.X_train))
+        self.accuracy_train = accuracy_score(self.y_train, self.model.predict(self.X_train,threshold=self.best_threshold))
         self.auc_roc_test   = roc_auc_score(self.y_test, self.model.predict_proba(self.X_test)[:,1])
-        self.accuracy_test  = accuracy_score(self.y_test, self.model.predict(self.X_test))
+        self.accuracy_test  = accuracy_score(self.y_test, self.model.predict(self.X_test,threshold=self.best_threshold))
         
         print(f'Treino-> AUC-ROC:{self.auc_roc_train} ---  ACCURACY {self.accuracy_train}')
         print(f'Test  -> AUC-ROC:{self.auc_roc_test} ---  ACCURACY {self.accuracy_test}')
@@ -136,8 +151,8 @@ class Modelagem:
             weight_accuracy = 0.5
             
             # Calcular a pontuação composta como média ponderada das métricas
-            score_composto = (weight_auc_roc * self.auc_roc_test) + (weight_accuracy * self.accuracy_test)
-
+            #score_composto = (weight_auc_roc * self.auc_roc_test) + (weight_accuracy * self.accuracy_test)
+            score_composto  = self.auc_roc_test-abs(self.accuracy_train-self.auc_roc_test)
             # O objetivo é maximizar a métrica AUC-ROC com Accuracy
             return score_composto
 
@@ -162,4 +177,3 @@ class Modelagem:
         print('Melhor valor de SCORE', study.best_value)
         print('Melhores hiperparâmetros:', study.best_params)
         return study,study.best_params,study.best_value,self.auc_roc_train,self.accuracy_train,self.auc_roc_test,self.accuracy_test
-

@@ -13,7 +13,8 @@ class Explicabilidade_Modelos:
         else: # mudar para adicionar mais modalidades
             pass
 
-    
+    # Passar dados que tenha marcado Treino Teste e Validação
+    # Passar cada dado por vez
     def set_data(self,X,y=None,tipo_dado='Treino',porc_avaliada = 0.3,):
 
         match tipo_dado:
