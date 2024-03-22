@@ -35,18 +35,24 @@ class Testes:
                     modelo  = Modelagem(self.data_final[features_selecionadas].drop('SK_ID_CURR',axis=1),'TARGET')
                     modelo.set_model(nome_modelo,{'random_state':42})
 
-                    study,melhores_param,score,auc_roc_train,accuracy_train,auc_roc_test,accuracy_test = modelo.otimizacao_parametros_optuna(parametros,num_iteracoes=qtd_iteracoes)
+                    study,melhores_param,score = modelo.otimizacao_parametros_optuna(parametros,num_iteracoes=qtd_iteracoes)
+
+                    for param,tipo,valor_inicial,valor_final in parametros:
+                      match tipo:
+                        case 'fixo':  melhores_param[param] = valor_inicial
+        
+                    melhores_param['random_state'] = 42
+
+                    melhor_modelo  = Modelagem(self.data_final[features_selecionadas].drop('SK_ID_CURR',axis=1),'TARGET')
+                    melhor_modelo.set_model(nome_modelo,melhores_param)
+                    auc_roc_train,accuracy_train,auc_roc_test,accuracy_test = melhor_modelo.train_model()
 
                     resultado.loc[idx_resultado] = [score,auc_roc_train,auc_roc_test,accuracy_train,accuracy_test,melhores_param,nome_modelo,seletor_feature,qtd_it_features+idx_feature] 
 
-                    del  modelo
+                    del  modelo,melhor_modelo
                     gc.collect()
                     
                     idx_resultado +=1
-            resultado.to_csv(f'resultados_teste_{nome_modelo}_{seletor_feature}.csv',index=False)
+            resultado.to_csv(f'/content/drive/MyDrive/CEFET/9º Periodo/TCC/resultados_teste_{nome_modelo}_{seletor_feature}.csv',index=False)
             del resultado 
-
-
-
-
-    
+ 

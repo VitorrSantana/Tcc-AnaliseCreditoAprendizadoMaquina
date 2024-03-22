@@ -41,7 +41,8 @@ class Modelagem:
             case 'supervisionado': 
                 self.model.fit(self.X_train,self.y_train)
                 self.metricas_modelo()
-                self.evaluate_model(type_model)
+                # self.evaluate_model(type_model)
+                return self.auc_roc_train,self.accuracy_train,self.auc_roc_test,self.accuracy_test
             case 'nao_supervisionado':
                 # self.evaluate_values_of_k()
                 self.model.fit(self.X)
@@ -165,16 +166,12 @@ class Modelagem:
 
         # Inicia a otimização
         study.optimize(objective_with_params, n_trials=num_iteracoes)
-        melhores_param = study.best_params
+        #melhores_param = study.best_params
         # Imprime os resultados
-        for param,tipo,valor_inicial,valor_final in parametos_otimizar:
-            match tipo:
-                case 'fixo':  melhores_param[param] = valor_inicial
-        
-        melhores_param['random_state'] = 42
-        self.model.set_params = melhores_param
-        self.train_model()
+        #melhores_param['random_state'] = 42
+        #self.model.set_params = melhores_param
+        #self.train_model()
 
         print('Melhor valor de SCORE', study.best_value)
         print('Melhores hiperparâmetros:', study.best_params)
-        return study,study.best_params,study.best_value,self.auc_roc_train,self.accuracy_train,self.auc_roc_test,self.accuracy_test
+        return study,study.best_params,study.best_value
