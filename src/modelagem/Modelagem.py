@@ -19,11 +19,22 @@ warnings.filterwarnings("ignore")
 
 class Modelagem:
     
-    def __init__(self,data,col_target,model= None,perct_test_size=0.3):
+    def __init__(self,data,col_target,model= None,perct_test_size=0.3,col_id='SK_ID_CURR'):
         self.X = data.drop(col_target,axis=1)
         self.y = data[col_target]
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=perct_test_size, random_state=1)
+        self.gera_base_marcada()
+        self.X_train = self.X_train.drop(col_id,axis=1)
+        self.X_test  = self.X_test.drop(col_id,axis=1)
         self.model = model
+    
+
+    def gera_base_marcada(self):
+        self.base_completa = self.X_train
+        self.base_completa = self.X_test
+        self.base_completa['TARGET'] = list(self.y_train.values) + list(self.y_test.values)
+        
+
 
     def set_model(self,name_model='random_forest',params=None):
         self.name_model_set = name_model

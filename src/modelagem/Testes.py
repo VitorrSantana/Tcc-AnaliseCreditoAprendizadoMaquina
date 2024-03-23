@@ -32,7 +32,7 @@ class Testes:
                     features_selecionadas = features[0:qtd_it_features+idx_feature]
                     features_selecionadas += ['SK_ID_CURR','TARGET']
 
-                    modelo  = Modelagem(self.data_final[features_selecionadas].drop('SK_ID_CURR',axis=1),'TARGET')
+                    modelo  = Modelagem(self.data_final[features_selecionadas],'TARGET')
                     modelo.set_model(nome_modelo,{'random_state':42})
 
                     study,melhores_param,score = modelo.otimizacao_parametros_optuna(parametros,num_iteracoes=qtd_iteracoes,metrica_otimizacao=metrica_otimizacao)
@@ -43,7 +43,7 @@ class Testes:
         
                     melhores_param['random_state'] = 42
 
-                    melhor_modelo  = Modelagem(self.data_final[features_selecionadas].drop('SK_ID_CURR',axis=1),'TARGET')
+                    melhor_modelo  = Modelagem(self.data_final[features_selecionadas],'TARGET')
                     melhor_modelo.set_model(nome_modelo,melhores_param)
                     auc_roc_train,accuracy_train,auc_roc_test,accuracy_test = melhor_modelo.train_model()
 
