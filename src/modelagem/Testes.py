@@ -14,7 +14,7 @@ class Testes:
         self.data_final     = data_final
         self.colunas        = colunas
 
-    def executa_simulações(self,qtd_it_features=5,qtd_iteracoes=50,seletor_features=['person','mutal_info','anova']):
+    def executa_simulações(self,qtd_it_features=5,qtd_iteracoes=50,seletor_features=['person','mutal_info','anova'],metrica_otimizacao='auc-roc'):
 
         for seletor_feature in seletor_features:
             resultado  = pd.DataFrame({'score_composto':[],'auc_roc_train':[],'auc_roc_test':[],'accuracy_train':[],'accuracy_test':[],'params':[],'modelo':[],'feature_selector':[],'qtd_features':[]})
@@ -35,7 +35,7 @@ class Testes:
                     modelo  = Modelagem(self.data_final[features_selecionadas].drop('SK_ID_CURR',axis=1),'TARGET')
                     modelo.set_model(nome_modelo,{'random_state':42})
 
-                    study,melhores_param,score = modelo.otimizacao_parametros_optuna(parametros,num_iteracoes=qtd_iteracoes)
+                    study,melhores_param,score = modelo.otimizacao_parametros_optuna(parametros,num_iteracoes=qtd_iteracoes,metrica_otimizacao=metrica_otimizacao)
 
                     for param,tipo,valor_inicial,valor_final in parametros:
                       match tipo:

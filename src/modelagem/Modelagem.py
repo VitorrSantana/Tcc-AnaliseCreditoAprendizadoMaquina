@@ -1,12 +1,12 @@
 # Importar bibliotecas necessárias
-from sklearn.model_selection import cross_val_score, train_test_split,GridSearchCV
+from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.preprocessing   import StandardScaler
 from sklearn.pipeline        import Pipeline
 from sklearn.linear_model    import LogisticRegression
 from sklearn.ensemble        import RandomForestClassifier
 from sklearn.tree            import DecisionTreeClassifier
 from sklearn.cluster         import KMeans
-from sklearn.metrics         import RocCurveDisplay, accuracy_score, classification_report,roc_auc_score,roc_curve
+from sklearn.metrics         import RocCurveDisplay, accuracy_score, classification_report,roc_auc_score,roc_curve,f1_score,precision_recall_curve,auc
 
 import matplotlib.pyplot as plt
 import lightgbm          as lgb
@@ -56,7 +56,7 @@ class Modelagem:
                 auc_roc_train = roc_auc_score(self.y_train, self.y_train_pred)
                 print('Reporte de Classificação para o Treino:')
                 print(f'A AUC ROC DO TREINO FOI >>> {auc_roc_train}')
-                print(classification_report(self.y_train, self.model.predict(self.X_train,threshold=self.best_threshold)))
+                print(classification_report(self.y_train, self.model.predict(self.X_train)))
                 RocCurveDisplay.from_predictions(self.y_train, self.y_train_pred)
                 print('----------------------------------------')
                 
@@ -64,7 +64,7 @@ class Modelagem:
                 print('Reporte de Classificação para o Teste:')
                 auc_roc = roc_auc_score(self.y_test, self.y_test_pred)
                 print(f'A AUC ROC DO TESTE FOI >>> {auc_roc}')
-                print(classification_report(self.y_test, self.model.predict(self.X_test,threshold=self.best_threshold)))
+                print(classification_report(self.y_test, self.model.predict(self.X_test)))
                 RocCurveDisplay.from_predictions(self.y_test, self.y_test_pred)
                 print('----------------------------------------')
             case 'nao_supervisionado':
@@ -73,23 +73,27 @@ class Modelagem:
     def metricas_modelo(self):
         
 
-        # Supondo que você já tenha os valores reais (y_true) e as probabilidades previstas (y_pred)
-        # y_true = [0, 1, 0, 1, ...]
-        # y_pred = [0.1, 0.8, 0.3, 0.6, ...]
+        predict_proba_train =  self.model.predict_proba(self.X_train)[:,1]
+        predict_proba_test  =  self.model.predict_proba(self.X_test)[:,1]
 
-        fpr, tpr, thresholds = roc_curve(self.y_train, self.model.predict_proba(self.X_train)[:,1])
-        auc_score = roc_auc_score(self.y_train, self.model.predict_proba(self.X_train)[:,1])
+        predict_train       = self.model.predict(self.X_train)
+        predict_teste       = self.model.predict(self.X_test)
 
-        # Calculando Youden's J para cada ponto de corte
-        youden_j = tpr - fpr
-        best_threshold_index = np.argmax(youden_j)
-        self.best_threshold = thresholds[best_threshold_index]
-        print(f'Melhor Threshold -> {self.best_threshold}')
+        # Calcular a curva precision-recall e a área sob a curva
+        precision, recall, _ = precision_recall_curve(self.y_test,predict_proba_test)
+        self.pr_auc_test = auc(recall, precision)
 
-        self.auc_roc_train  = roc_auc_score(self.y_train, self.model.predict_proba(self.X_train)[:,1])
-        self.accuracy_train = accuracy_score(self.y_train, self.model.predict(self.X_train,threshold=self.best_threshold))
-        self.auc_roc_test   = roc_auc_score(self.y_test, self.model.predict_proba(self.X_test)[:,1])
-        self.accuracy_test  = accuracy_score(self.y_test, self.model.predict(self.X_test,threshold=self.best_threshold))
+        precision, recall, _ = precision_recall_curve(self.y_train,predict_proba_train)
+        self.pr_auc_train = auc(recall, precision)
+
+
+        self.f1_score_train = f1_score(self.y_train,predict_train)
+        self.f1_score_test  = f1_score(self.y_test,predict_teste)
+
+        self.auc_roc_train  = roc_auc_score(self.y_train, predict_proba_train)
+        self.accuracy_train = accuracy_score(self.y_train,predict_train)
+        self.auc_roc_test   = roc_auc_score(self.y_test,predict_proba_test)
+        self.accuracy_test  = accuracy_score(self.y_test, predict_teste)
         
         print(f'Treino-> AUC-ROC:{self.auc_roc_train} ---  ACCURACY {self.accuracy_train}')
         print(f'Test  -> AUC-ROC:{self.auc_roc_test} ---  ACCURACY {self.accuracy_test}')
@@ -114,8 +118,8 @@ class Modelagem:
         plt.title('Método do Cotovelo para Escolha do Número de Clusters')
         plt.show()
 
-    def otimizacao_parametros_optuna(self,parametos_otimizar,num_iteracoes=100):
-        def objective(trial, parametos_otimizar):
+    def otimizacao_parametros_optuna(self,parametos_otimizar,num_iteracoes=100,metrica_otimizacao='auc-roc'):
+        def objective(trial, parametos_otimizar,metrica_otimizacao):
             # Define os hiperparâmetros a serem otimizados
             parametros = {}
             for param,tipo,valor_inicial,valor_final in parametos_otimizar:
@@ -151,9 +155,16 @@ class Modelagem:
             weight_auc_roc = 0.5
             weight_accuracy = 0.5
             
+            match metrica_otimizacao:
+                case 'f1_score': score_composto = self.f1_score_test - abs(self.f1_score_train-self.f1_score_test)
+                case 'auc-roc' : score_composto = self.auc_roc_test - abs(self.auc_roc_train-self.auc_roc_test)
+                case 'accuracy': score_composto = self.accuracy_test - abs(self.accuracy_train-self.accuracy_test)
+                case 'pr_auc'  : score_composto = self.pr_auc_test- abs(self.pr_auc_test-self.pr_auc_train)
+                case 'composto': score_composto =  (weight_auc_roc * (self.auc_roc_test-abs(self.auc_roc_train-self.auc_roc_test))) + (weight_accuracy * self.accuracy_test)
             # Calcular a pontuação composta como média ponderada das métricas
             #score_composto = (weight_auc_roc * self.auc_roc_test) + (weight_accuracy * self.accuracy_test)
-            score_composto  = self.auc_roc_test-abs(self.auc_roc_train-self.auc_roc_test)
+            # score_composto  = self.auc_roc_test-abs(self.auc_roc_train-self.auc_roc_test)
+            
             # O objetivo é maximizar a métrica AUC-ROC com Accuracy
             return score_composto
 
