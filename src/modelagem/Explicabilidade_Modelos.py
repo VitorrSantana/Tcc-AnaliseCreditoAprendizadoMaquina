@@ -45,7 +45,7 @@ class Explicabilidade_Modelos:
 
     def grafico_summary_plot(self):
          
-        shap.summary_plot(self.shap_values[1],self.X)
+        shap.summary_plot(self.shap_values,self.X)
 
 
     def grafico_dependence_plot(self,feature_dependence,intr_index = None):
