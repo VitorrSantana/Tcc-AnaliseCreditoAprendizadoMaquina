@@ -1,5 +1,5 @@
 
-DIRETORIO = './data/'
+DIRETORIO = '/content/drive/MyDrive/CEFET/9º Periodo/TCC/inputs/'
 EXT_CSV   = '.csv'
 
 DIR_BASE_APLICAT_TRAIN = f'{DIRETORIO}application_train{EXT_CSV}'

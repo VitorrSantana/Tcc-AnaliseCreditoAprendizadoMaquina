@@ -53,6 +53,6 @@ class Testes:
                     gc.collect()
                     
                     idx_resultado +=1
-            resultado.to_csv(f'/content/drive/MyDrive/CEFET/9º Periodo/TCC/resultados_{nome_modelo}_{seletor_feature}_{metrica_otimizacao}.csv',index=False)
+            resultado.to_csv(f'/content/drive/MyDrive/CEFET/9º Periodo/TCC/testes_outputs/resultados_{nome_modelo}_{seletor_feature}_{metrica_otimizacao}.csv',index=False)
             del resultado 
  
