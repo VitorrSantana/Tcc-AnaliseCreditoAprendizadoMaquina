@@ -7,6 +7,7 @@ from sklearn.ensemble        import RandomForestClassifier
 from sklearn.tree            import DecisionTreeClassifier
 from sklearn.cluster         import KMeans
 from sklearn.metrics         import RocCurveDisplay, accuracy_score, classification_report,roc_auc_score,roc_curve,f1_score,precision_recall_curve,auc,recall_score
+from imblearn.under_sampling import NearMiss 
 
 import matplotlib.pyplot as plt
 import lightgbm          as lgb
@@ -20,15 +21,29 @@ warnings.filterwarnings("ignore")
 
 class Modelagem:
     
-    def __init__(self,data,col_target,model= None,perct_test_size=0.3,col_id='SK_ID_CURR'):
+    def __init__(self,data,col_target,model= None,perct_test_size=0.3,col_id='SK_ID_CURR',balancear=False):
         self.X = data.drop(col_target,axis=1)
         self.y = data[col_target]
+        if balancear:
+            self.classe_balanceado()
+            self.X = self.X_resampled
+            self.y = self.y_resampled
+            perct_test_size = 0.5
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=perct_test_size, random_state=1)
         self.gera_base_marcada()
         self.X_train = self.X_train.drop(col_id,axis=1)
         self.X_test  = self.X_test.drop(col_id,axis=1)
         self.model = model
     
+
+    def classe_balanceado(self):
+        # Aplicar subamostragem utilizando NearMiss
+        undersampler = NearMiss()
+        self.X_resampled, self.y_resampled = undersampler.fit_resample(self.X, self.y)
+        # Plotar a distribuição das classes após a subamostragem
+        # Contagem de exemplos em cada classe após a subamostragem
+        unique, counts = np.unique(self.y_resampled, return_counts=True)
+        print("Contagem de exemplos em cada classe após a subamostragem:", dict(zip(unique, counts)))
 
     def gera_base_marcada(self):
         self.base_completa = pd.concat([self.X_train,self.X_test])
