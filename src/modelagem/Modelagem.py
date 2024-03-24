@@ -15,6 +15,7 @@ import optuna
 import pickle 
 import warnings
 import numpy as np
+import pandas as pd
 warnings.filterwarnings("ignore")
 
 class Modelagem:
@@ -30,11 +31,9 @@ class Modelagem:
     
 
     def gera_base_marcada(self):
-        self.base_completa = self.X_train
-        self.base_completa = self.X_test
+        self.base_completa = pd.concat([self.X_train,self.X_test])
+        self.base_completa['marcacao'] = ['Treino' for _ in range(len(list(self.y_train.values)))] + ['Teste' for _ in range(len(list(self.y_test.values)))]
         self.base_completa['TARGET'] = list(self.y_train.values) + list(self.y_test.values)
-        
-
 
     def set_model(self,name_model='random_forest',params=None):
         self.name_model_set = name_model
@@ -184,7 +183,7 @@ class Modelagem:
 
         # Parâmetros adicionais para a função objetivo
         # Use a função partial para passar os parâmetros adicionais para a função objetivo
-        objective_with_params = lambda trial: objective(trial, parametos_otimizar)
+        objective_with_params = lambda trial: objective(trial, parametos_otimizar,metrica_otimizacao)
 
         # Inicia a otimização
         study.optimize(objective_with_params, n_trials=num_iteracoes)
