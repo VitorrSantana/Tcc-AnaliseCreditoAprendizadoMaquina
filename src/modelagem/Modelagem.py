@@ -6,7 +6,7 @@ from sklearn.linear_model    import LogisticRegression
 from sklearn.ensemble        import RandomForestClassifier
 from sklearn.tree            import DecisionTreeClassifier
 from sklearn.cluster         import KMeans
-from sklearn.metrics         import RocCurveDisplay, accuracy_score, classification_report,roc_auc_score,roc_curve,f1_score,precision_recall_curve,auc
+from sklearn.metrics         import RocCurveDisplay, accuracy_score, classification_report,roc_auc_score,roc_curve,f1_score,precision_recall_curve,auc,recall_score
 
 import matplotlib.pyplot as plt
 import lightgbm          as lgb
@@ -95,6 +95,9 @@ class Modelagem:
 
         precision, recall, _ = precision_recall_curve(self.y_train,predict_proba_train)
         self.pr_auc_train = auc(recall, precision)
+        
+        self.recall_train = recall_score(self.y_train,predict_train)
+        self.recall_test  = recall_score(self.y_teste,predict_teste)
 
 
         self.f1_score_train = f1_score(self.y_train,predict_train)
@@ -105,7 +108,8 @@ class Modelagem:
         self.auc_roc_test   = roc_auc_score(self.y_test,predict_proba_test)
         self.accuracy_test  = accuracy_score(self.y_test, predict_teste)
         
-        print(f'Treino-> AUC-ROC:{self.auc_roc_train} ---  ACCURACY {self.accuracy_train}')
+        print(f'Treino-> RECALL :{self.recall_train} ---  RECALL    {self.recall_test}')
+        print(f'Treino-> AUC-ROC:{self.auc_roc_train} --- ACCURACY {self.accuracy_train}')
         print(f'Test  -> AUC-ROC:{self.auc_roc_test} ---  ACCURACY {self.accuracy_test}')
 
 
@@ -170,6 +174,7 @@ class Modelagem:
                 case 'auc-roc' : score_composto = self.auc_roc_test - abs(self.auc_roc_train-self.auc_roc_test)
                 case 'accuracy': score_composto = self.accuracy_test - abs(self.accuracy_train-self.accuracy_test)
                 case 'pr_auc'  : score_composto = self.pr_auc_test- abs(self.pr_auc_test-self.pr_auc_train)
+                case 'recall'  : score_composto = self.recall_test- abs(self.recall_test-self.recall_train)
                 case 'composto': score_composto =  (weight_auc_roc * (self.auc_roc_test-abs(self.auc_roc_train-self.auc_roc_test))) + (weight_accuracy * self.accuracy_test)
             # Calcular a pontuação composta como média ponderada das métricas
             #score_composto = (weight_auc_roc * self.auc_roc_test) + (weight_accuracy * self.accuracy_test)
