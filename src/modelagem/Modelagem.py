@@ -26,10 +26,13 @@ class Modelagem:
         self.y = data[col_target]
         if balancear:
             self.classe_balanceado()
-            self.X = self.X_resampled
-            self.y = self.y_resampled
-            perct_test_size = 0.5
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=perct_test_size, random_state=1)
+            self.X_train, _, self.y_train, _ = train_test_split(self.X_resampled, self.y_resampled, test_size=perct_test_size, random_state=1)
+            _, self.X_test, _, self.y_test   = train_test_split(self.X, self.y, test_size=0.5, random_state=1)
+            # self.X = self.X_resampled
+            # self.y = self.y_resampled
+            # perct_test_size = 0.5
+        else:
+            self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=perct_test_size, random_state=1)
         self.gera_base_marcada()
         self.X_train = self.X_train.drop(col_id,axis=1)
         self.X_test  = self.X_test.drop(col_id,axis=1)
@@ -112,7 +115,7 @@ class Modelagem:
         self.pr_auc_train = auc(recall, precision)
         
         self.recall_train = recall_score(self.y_train,predict_train)
-        self.recall_test  = recall_score(self.y_teste,predict_teste)
+        self.recall_test  = recall_score(self.y_test,predict_teste)
 
 
         self.f1_score_train = f1_score(self.y_train,predict_train)

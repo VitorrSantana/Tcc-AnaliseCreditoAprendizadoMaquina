@@ -32,7 +32,7 @@ class Testes:
                     features_selecionadas = features[0:qtd_it_features+idx_feature]
                     features_selecionadas += ['SK_ID_CURR','TARGET']
 
-                    modelo  = Modelagem(self.data_final[features_selecionadas],'TARGET')
+                    modelo  = Modelagem(self.data_final[features_selecionadas],'TARGET',balancear=True)
                     modelo.set_model(nome_modelo,{'random_state':42})
 
                     study,melhores_param,score = modelo.otimizacao_parametros_optuna(parametros,num_iteracoes=qtd_iteracoes,metrica_otimizacao=metrica_otimizacao)
