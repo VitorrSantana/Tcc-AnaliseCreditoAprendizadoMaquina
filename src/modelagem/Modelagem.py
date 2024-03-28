@@ -8,6 +8,7 @@ from sklearn.tree            import DecisionTreeClassifier
 from sklearn.cluster         import KMeans
 from sklearn.metrics         import RocCurveDisplay, accuracy_score, classification_report,roc_auc_score,roc_curve,f1_score,precision_recall_curve,auc,recall_score
 from imblearn.under_sampling import NearMiss 
+from imblearn.over_sampling import SMOTE
 
 import matplotlib.pyplot as plt
 import lightgbm          as lgb
@@ -21,11 +22,11 @@ warnings.filterwarnings("ignore")
 
 class Modelagem:
     
-    def __init__(self,data,col_target,model= None,perct_test_size=0.3,col_id='SK_ID_CURR',balancear=False):
+    def __init__(self,data,col_target,model= None,perct_test_size=0.3,col_id='SK_ID_CURR',balancear=False,tipoBalanceamento= 'under'):
         self.X = data.drop(col_target,axis=1)
         self.y = data[col_target]
         if balancear:
-            self.classe_balanceado()
+            self.classe_balanceado(tipoBalanceamento)
             self.X_train, _, self.y_train, _ = train_test_split(self.X_resampled, self.y_resampled, test_size=perct_test_size, random_state=1)
             _, self.X_test, _, self.y_test   = train_test_split(self.X, self.y, test_size=0.5, random_state=1)
             # self.X = self.X_resampled
@@ -39,14 +40,18 @@ class Modelagem:
         self.model = model
     
 
-    def classe_balanceado(self):
+    def classe_balanceado(self,tipoBalanceamento='under'):
         # Aplicar subamostragem utilizando NearMiss
-        undersampler = NearMiss()
-        self.X_resampled, self.y_resampled = undersampler.fit_resample(self.X, self.y)
-        # Plotar a distribuição das classes após a subamostragem
-        # Contagem de exemplos em cada classe após a subamostragem
+        if tipoBalanceamento=='under':
+            undersampler = NearMiss()
+            self.X_resampled, self.y_resampled = undersampler.fit_resample(self.X, self.y)     
+        else:
+            smote = SMOTE(sampling_strategy='auto', random_state=42)
+            self.X_resampled, self.y_resampled = smote.fit_resample(self.X, self.y)
+        
         unique, counts = np.unique(self.y_resampled, return_counts=True)
         print("Contagem de exemplos em cada classe após a subamostragem:", dict(zip(unique, counts)))
+
 
     def gera_base_marcada(self):
         self.base_completa = pd.concat([self.X_train,self.X_test])
